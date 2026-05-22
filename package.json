@@ -1,0 +1,64 @@
+{
+  "name": "ejentum-mastra",
+  "version": "0.1.0",
+  "description": "Mastra integration for the Ejentum Reasoning Harness. createEjentumTools() returns four agent-callable tools (harness_reasoning, harness_code, harness_anti_deception, harness_memory) you pass to new Agent({ tools }). Each call returns a task-matched cognitive operation engineered in two layers: a natural-language procedure plus an executable reasoning topology.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "mastra",
+    "@mastra/core",
+    "ejentum",
+    "reasoning-harness",
+    "agentic-ai",
+    "llm",
+    "anti-deception",
+    "cognitive-scaffold",
+    "ai",
+    "typescript"
+  ],
+  "author": "Ejentum <info@ejentum.com>",
+  "license": "MIT",
+  "homepage": "https://ejentum.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ejentum/ejentum-mastra.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ejentum/ejentum-mastra/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "peerDependencies": {
+    "@mastra/core": ">=0.10.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@mastra/core": "^1.36.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.5.0",
+    "vitest": "^1.6.0",
+    "zod": "^3.23.0"
+  }
+}
