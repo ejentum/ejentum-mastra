@@ -13,13 +13,21 @@ export type HarnessMode =
   | "reasoning"
   | "code"
   | "anti-deception"
-  | "memory";
+  | "memory"
+  | "adaptive-reasoning"
+  | "adaptive-code"
+  | "adaptive-anti-deception"
+  | "adaptive-memory";
 
 export const VALID_MODES: readonly HarnessMode[] = [
   "reasoning",
   "code",
   "anti-deception",
   "memory",
+  "adaptive-reasoning",
+  "adaptive-code",
+  "adaptive-anti-deception",
+  "adaptive-memory",
 ];
 
 export interface EjentumConfig {
@@ -59,7 +67,8 @@ export async function callLogicApi(
   if (!VALID_MODES.includes(mode)) {
     return (
       "Ejentum harness call failed: 'mode' must be one of " +
-      "reasoning|code|anti-deception|memory, got '" +
+      "reasoning|code|anti-deception|memory|adaptive-reasoning|" +
+      "adaptive-code|adaptive-anti-deception|adaptive-memory, got '" +
       String(mode) +
       "'."
     );
