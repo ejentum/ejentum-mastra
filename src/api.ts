@@ -6,7 +6,7 @@
  */
 
 export const DEFAULT_API_URL =
-  "https://ejentum-main-ab125c3.zuplo.app/logicv1/";
+  "https://api.ejentum.com/harness";
 export const DEFAULT_TIMEOUT_MS = 10_000;
 
 export type HarnessMode =
