@@ -6,7 +6,7 @@
  */
 
 export const DEFAULT_API_URL =
-  "https://api.ejentum.com/harness";
+  "https://api.ejentum.com/harness/";
 export const DEFAULT_TIMEOUT_MS = 10_000;
 
 export type HarnessMode =
