@@ -2,6 +2,8 @@
 
 [Mastra](https://mastra.ai) integration for the Ejentum Reasoning Harness. `createEjentumTools()` returns an object of eight Mastra `createTool` instances you pass as the `tools` field to `new Agent({ tools, ... })`. Each tool calls the Ejentum API and returns a structured injection the LLM consumes before generating its response.
 
+Use the harness before the agent generates on complex, multi-step, or multi-constraint tasks where the model's default reasoning template would miss a constraint, take a shortcut, or drift across turns. Each call returns a *cognitive operation*: a structured procedure (numbered steps with a failure pattern to refuse and a falsification test) paired with an executable reasoning topology (a DAG of those steps with decision gates, parallel branches, bounded loops, and meta-cognitive exit nodes). The agent reads both layers before producing its response.
+
 Four dynamic tools (`reasoning`, `code`, `anti-deception`, `memory`) are available on all tiers including the 30-day free trial. Four adaptive tools (`adaptive-reasoning`, `adaptive-code`, `adaptive-anti-deception`, `adaptive-memory`) additionally run an adapter LLM that rewrites the matched operation with task-specific identifiers; they require the Go or Super tier.
 
 ## Install

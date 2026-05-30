@@ -2,6 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   callLogicApi,
+  createAdaptiveAntiDeceptionTool,
+  createAdaptiveCodeTool,
+  createAdaptiveMemoryTool,
+  createAdaptiveReasoningTool,
   createAntiDeceptionTool,
   createCodeTool,
   createEjentumTools,
@@ -38,13 +42,17 @@ const htmlResponse = (text: string): Response => ({
 }) as unknown as Response;
 
 describe("createEjentumTools factory", () => {
-  it("returns four tools keyed by harness* names", () => {
+  it("returns eight tools keyed by camelCase developer names", () => {
     const tools = createEjentumTools();
     expect(Object.keys(tools).sort()).toEqual([
-      "harnessAntiDeception",
-      "harnessCode",
-      "harnessMemory",
-      "harnessReasoning",
+      "adaptiveAntiDeception",
+      "adaptiveCode",
+      "adaptiveMemory",
+      "adaptiveReasoning",
+      "antiDeception",
+      "code",
+      "memory",
+      "reasoning",
     ]);
   });
 
@@ -53,7 +61,7 @@ describe("createEjentumTools factory", () => {
     for (const key of Object.keys(tools)) {
       const t = (tools as Record<string, { id: string; description: string; inputSchema: unknown; outputSchema: unknown; execute: unknown }>)[key];
       expect(typeof t.id).toBe("string");
-      expect(t.id.startsWith("harness_")).toBe(true);
+      expect(t.id.length).toBeGreaterThan(0);
       expect(typeof t.description).toBe("string");
       expect(t.description.length).toBeGreaterThan(50);
       expect(t.inputSchema).toBeDefined();
@@ -62,18 +70,22 @@ describe("createEjentumTools factory", () => {
     }
   });
 
-  it("tool ids match the expected harness_* names", () => {
+  it("tool ids match the canonical hyphenated mode strings", () => {
     const tools = createEjentumTools();
-    expect(tools.harnessReasoning.id).toBe("harness_reasoning");
-    expect(tools.harnessCode.id).toBe("harness_code");
-    expect(tools.harnessAntiDeception.id).toBe("harness_anti_deception");
-    expect(tools.harnessMemory.id).toBe("harness_memory");
+    expect(tools.reasoning.id).toBe("reasoning");
+    expect(tools.code.id).toBe("code");
+    expect(tools.antiDeception.id).toBe("anti-deception");
+    expect(tools.memory.id).toBe("memory");
+    expect(tools.adaptiveReasoning.id).toBe("adaptive-reasoning");
+    expect(tools.adaptiveCode.id).toBe("adaptive-code");
+    expect(tools.adaptiveAntiDeception.id).toBe("adaptive-anti-deception");
+    expect(tools.adaptiveMemory.id).toBe("adaptive-memory");
   });
 
   it("returns independent tool instances per factory call", () => {
     const a = createEjentumTools();
     const b = createEjentumTools();
-    expect(a.harnessReasoning).not.toBe(b.harnessReasoning);
+    expect(a.reasoning).not.toBe(b.reasoning);
   });
 });
 
@@ -94,11 +106,34 @@ describe("per-tool factories", () => {
     const t = createMemoryTool();
     expect(t.description.toLowerCase()).toMatch(/filter|sharpen|noticed/);
   });
+  it("createAdaptiveReasoningTool description mentions adaptive or rewritten", () => {
+    const t = createAdaptiveReasoningTool();
+    expect(t.description.toLowerCase()).toMatch(/adaptive|rewrit|task-specific/);
+  });
+  it("createAdaptiveCodeTool mentions code and adaptive", () => {
+    const t = createAdaptiveCodeTool();
+    expect(t.description.toLowerCase()).toMatch(/adaptive|rewrit/);
+    expect(t.description.toLowerCase()).toMatch(/code/);
+  });
+  it("createAdaptiveAntiDeceptionTool mentions integrity and adaptive", () => {
+    const t = createAdaptiveAntiDeceptionTool();
+    expect(t.description.toLowerCase()).toMatch(/adaptive|rewrit/);
+    expect(t.description.toLowerCase()).toMatch(/anti-deception|integrity|honest/);
+  });
+  it("createAdaptiveMemoryTool mentions memory and adaptive", () => {
+    const t = createAdaptiveMemoryTool();
+    expect(t.description.toLowerCase()).toMatch(/adaptive|rewrit/);
+    expect(t.description.toLowerCase()).toMatch(/memory|sharpen|noticed/);
+  });
 });
 
 describe("VALID_MODES constant", () => {
-  it("contains the four canonical modes", () => {
+  it("contains the eight canonical modes", () => {
     expect([...VALID_MODES].sort()).toEqual([
+      "adaptive-anti-deception",
+      "adaptive-code",
+      "adaptive-memory",
+      "adaptive-reasoning",
       "anti-deception",
       "code",
       "memory",
@@ -204,7 +239,7 @@ describe("callLogicApi failure surface", () => {
     expect(result.toLowerCase()).toContain("unexpected response shape");
   });
 
-  it("non-string scaffold value is handled", async () => {
+  it("non-string injection value is handled", async () => {
     fetchSpy.mockResolvedValue(
       okResponse([{ reasoning: ["not", "a", "string"] }]),
     );
@@ -237,20 +272,29 @@ describe("callLogicApi success path", () => {
     fetchSpy.mockRestore();
   });
 
-  for (const mode of ["reasoning", "code", "anti-deception", "memory"] as const) {
+  for (const mode of [
+    "reasoning",
+    "code",
+    "anti-deception",
+    "memory",
+    "adaptive-reasoning",
+    "adaptive-code",
+    "adaptive-anti-deception",
+    "adaptive-memory",
+  ] as const) {
     it(`round-trips ${mode} mode`, async () => {
       fetchSpy.mockResolvedValue(
-        okResponse([{ [mode]: `[NEGATIVE GATE] sample ${mode} scaffold` }]),
+        okResponse([{ [mode]: `[PROCEDURE] sample ${mode} injection` }]),
       );
       const query =
-        mode === "memory"
+        mode === "memory" || mode === "adaptive-memory"
           ? "I noticed drift. This might mean Y. Sharpen: Z."
           : "sample task";
       const result = await callLogicApi(mode, query, {
         apiKey: "test-key",
         apiUrl: API_URL,
       });
-      expect(result).toContain(`sample ${mode} scaffold`);
+      expect(result).toContain(`sample ${mode} injection`);
       expect(fetchSpy).toHaveBeenCalledTimes(1);
       const [calledUrl, init] = fetchSpy.mock.calls[0] ?? [];
       expect(calledUrl).toBe(API_URL);
@@ -263,7 +307,7 @@ describe("callLogicApi success path", () => {
 
   it("explicit apiKey overrides env var", async () => {
     process.env.EJENTUM_API_KEY = "env-key";
-    fetchSpy.mockResolvedValue(okResponse([{ reasoning: "scaffold" }]));
+    fetchSpy.mockResolvedValue(okResponse([{ reasoning: "injection" }]));
     await callLogicApi("reasoning", "anything", {
       apiKey: "explicit-key",
       apiUrl: API_URL,
@@ -276,7 +320,7 @@ describe("callLogicApi success path", () => {
 
   it("env var is read when apiKey is omitted", async () => {
     process.env.EJENTUM_API_KEY = "env-key";
-    fetchSpy.mockResolvedValue(okResponse([{ reasoning: "scaffold" }]));
+    fetchSpy.mockResolvedValue(okResponse([{ reasoning: "injection" }]));
     await callLogicApi("reasoning", "anything", { apiUrl: API_URL });
     const init = fetchSpy.mock.calls[0]?.[1] as RequestInit;
     const headers = init.headers as Record<string, string>;
